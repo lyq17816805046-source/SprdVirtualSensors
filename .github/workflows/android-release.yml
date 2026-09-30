@@ -39,7 +39,7 @@ jobs:
           echo "$PWD/gradle-8.2.1/bin" >> $GITHUB_PATH
 
       - name: Build Debug APK
-        run: gradle --no-daemon assembleDebug
+        run: gradle --no-daemon assembleDebug --stacktrace
 
       - name: Collect artifacts
         run: |
