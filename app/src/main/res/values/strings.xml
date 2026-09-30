@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">SprdVirtualSensors</string>
+    <string name="channel_foreground_name">传感器监控</string>
+    <string name="channel_event_name">传感器事件</string>
+    <string name="notif_foreground_title">传感器监控运行中</string>
+    <string name="notif_foreground_text">正在监听 Elevator 与 Media Flip (WAKE_UP)</string>
+</resources>
