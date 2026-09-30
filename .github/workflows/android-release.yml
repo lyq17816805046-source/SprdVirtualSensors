@@ -20,69 +20,31 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Android SDK
-        run: |
-          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
-          echo "$ANDROID_HOME/build-tools/34.0.0" >> $GITHUB_PATH
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Verify SDK
-        run: |
-          echo "=== Java version ==="
-          java -version 2>&1 || true
-          echo "=== ANDROID_HOME ==="
-          echo "$ANDROID_HOME"
-          ls -la "$ANDROID_HOME" 2>/dev/null || echo "ANDROID_HOME not found"
-          echo "=== sdkmanager ==="
-          which sdkmanager || echo "sdkmanager not in PATH"
-
-      - name: Install SDK packages
-        run: |
-          sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0" || true
-          echo "=== Installed platforms ==="
-          ls "$ANDROID_HOME/platforms" 2>/dev/null || true
-
-      - name: Download and setup Gradle
-        run: |
-          wget -q https://services.gradle.org/distributions/gradle-8.2.1-bin.zip
-          unzip -q gradle-8.2.1-bin.zip
-          echo "$PWD/gradle-8.2.1/bin" >> $GITHUB_PATH
-          gradle --version || echo "gradle not found"
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.2.1
 
       - name: Build Debug APK
-        run: gradle --no-daemon assembleDebug --stacktrace --info 2>&1 | tee build.log
-        continue-on-error: true
-
-      - name: Check build result
-        run: |
-          if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
-            echo "✅ APK built successfully"
-            ls -lh app/build/outputs/apk/debug/app-debug.apk
-          else
-            echo "❌ APK not found"
-            echo "=== Last 100 lines of build log ==="
-            tail -100 build.log || true
-            exit 1
-          fi
+        run: gradle assembleDebug --stacktrace
 
       - name: Collect artifacts
-        if: success()
         run: |
           TAG_NAME="${GITHUB_REF_NAME:-ci}"
           mkdir -p artifacts
           cp app/build/outputs/apk/debug/app-debug.apk "artifacts/SprdVirtualSensors-${TAG_NAME}-debug.apk"
 
       - name: Upload artifacts
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: apk-${{ github.ref_name || 'ci' }}
           path: artifacts/*.apk
 
       - name: Create GitHub Release (only on tag)
-        if: success() && startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
