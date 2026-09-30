@@ -23,7 +23,6 @@
 
         <service
             android:name=".SensorForegroundService"
-            android:exported="false"
-            android:foregroundServiceType="none" />
+            android:exported="false" />
     </application>
 </manifest>
